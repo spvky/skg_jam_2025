@@ -14,6 +14,7 @@ Platform :: struct {
 	type: Platform_Type
 }
 
+// Make a platform
 make_platform :: proc(translation: Vec2, width: f32, height: f32, type: Platform_Type =  .Normal) -> Platform {
 	return Platform {
 		translation = translation,
@@ -22,18 +23,23 @@ make_platform :: proc(translation: Vec2, width: f32, height: f32, type: Platform
 	}
 }
 
-draw_platforms :: proc(platforms: []Platform) {
-	for platform in platforms {
-		rl.DrawRectangleV(platform.translation, platform.size, rl.WHITE)
-	}
-}
-
 Platform_Iter :: struct {
 	platforms: sa.Small_Array(20, Platform),
 	index: int
 }
 
-platform_make_iter :: proc(platforms: []Platform, type: Platform_Type) -> Platform_Iter {
+platforms_filter :: proc(platforms: []Platform, type: Platform_Type = .Normal) -> [dynamic]Platform {
+	filtered := make([dynamic]Platform, 0, 8)
+	for p in platforms {
+		if p.type == type {
+			append(&filtered, p)
+		}
+	}
+	return filtered
+}
+
+// Create an iter of platforms of the given type, defaults to normal
+platform_make_iter :: proc(platforms: []Platform, type: Platform_Type = .Normal) -> Platform_Iter {
 	inner_platforms: sa.Small_Array(20, Platform)
 
 	for p in platforms {

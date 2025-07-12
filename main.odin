@@ -1,13 +1,10 @@
 package main
 
+import "core:fmt"
 import rl "vendor:raylib"
+import sa "core:container/small_array"
 
 Vec2 :: [2]f32
-
-Player :: struct {
-	translation: Vec2,
-	radius: f32
-}
 
 SCREEN_WIDTH :: 1600
 SCREEN_HEIGHT :: 900
@@ -29,7 +26,7 @@ main :: proc() {
 		camera.target = 0
 		rl.BeginMode2D(camera)
 		draw_platforms(platforms[:])
-		rl.DrawCircleV(player.translation, player.radius, rl.WHITE)
+		draw_player(player)
 		rl.EndMode2D()
 		rl.EndDrawing()
 	}
