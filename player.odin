@@ -5,7 +5,8 @@ import rl "vendor:raylib"
 import sa "core:container/small_array"
 
 Input_Buffer :: struct {
-	actions: [Input_Action]Buffered_Input
+	actions: [Input_Action]Buffered_Input,
+	lockout: f32
 }
 
 Buffered_Input :: union {f32}
@@ -17,6 +18,14 @@ Input_Action :: enum {
 
 update_buffer :: proc() {
 	frametime := rl.GetFrameTime()
+
+	if input_buffer.lockout > 0 {
+		input_buffer.lockout -= frametime
+		if input_buffer.lockout < 0 {
+			input_buffer.lockout = 0
+		}
+	}
+
 	for &buffered in input_buffer.actions {
 		switch &v in buffered {
 			case f32:
@@ -74,7 +83,9 @@ player_movement :: proc() {
 			if delta == 0 {
 				entity.velocity.x = entity.velocity.x * 0.999
 			} else {
-				entity.velocity.x = delta * speed
+				if input_buffer.lockout == 0 {
+					entity.velocity.x = delta * speed
+				}
 			}
 		}
 	}
@@ -89,6 +100,16 @@ player_jump :: proc() {
 						entity.velocity.y = -60
 						entity.state = .Airborne
 					case .Slide:
+						jump_force:= Vec2 {0,-25}
+						switch entity.sliding_wall {
+							case .Right:
+								jump_force.x = -30
+							case .Left:
+								jump_force.x = 30
+						}
+						entity.velocity = jump_force
+						entity.state = .Airborne
+						input_buffer.lockout = 0.25
 				}
 			}
 
