@@ -61,14 +61,12 @@ entity_platform_collision :: proc() {
 			nearest_platform := project_point_onto_platform(platform, entity.translation)
 			nearest_entity := l.clamp(nearest_platform, entity.translation - half_height, entity.translation + half_height)
 
-			should_ignore := entity.velocity.y < 0 && platform.type == .OneWay
+			should_ignore := entity.velocity.y < 1 && platform.type == .OneWay
 			if l.distance(nearest_entity, nearest_platform) < entity.radius  && !should_ignore{
 				calculate_collision(&collisions, nearest_entity, nearest_platform, entity.radius)
 			}
 		}
 
-		if len(collisions) == 0 {
-		}
 		for collision in collisions {
 			entity.translation += collision.mtv
 			x_dot := math.abs(l.dot(collision.normal, Vec2{1,0}))
@@ -82,12 +80,18 @@ entity_platform_collision :: proc() {
 		}
 
 		// grounded check
+		ground_hits: int
 		for platform in platforms {
 			feet_position := entity.translation + Vec2{0, entity.height}
 			nearest_platform := project_point_onto_platform(platform, feet_position)
 			if l.distance(feet_position, nearest_platform) < 1 && entity.velocity.y >= 0 {
-				entity.grounded = true
+				ground_hits += 1
 			}
+		}
+		if ground_hits > 0 {
+			entity.grounded = true
+		} else {
+			entity.grounded = false
 		}
 	}
 }
