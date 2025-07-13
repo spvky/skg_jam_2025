@@ -10,8 +10,8 @@ Vec2 :: [2]f32
 WINDOW_WIDTH : f32 = 1600.0
 WINDOW_HEIGHT : f32 = 900.0
 
-SCREEN_WIDTH :: 800
-SCREEN_HEIGHT :: 450
+SCREEN_WIDTH :: 400
+SCREEN_HEIGHT :: 225
 
 letterbox :rl.Rectangle = {0,0,1600,900}
 
@@ -32,7 +32,7 @@ time: Time
 platforms := [?]Platform {
 	make_platform({-25,25}, 50, 10)
 }
-camera := rl.Camera2D {zoom = 1, offset = Vec2 {SCREEN_WIDTH/4,SCREEN_HEIGHT/4}}//, offset = Vec2{-SCREEN_WIDTH/2,-SCREEN_HEIGHT/2}}
+camera := rl.Camera2D {zoom = 1, offset = Vec2 {SCREEN_WIDTH/2,SCREEN_HEIGHT/2}}//, offset = Vec2{-SCREEN_WIDTH/2,-SCREEN_HEIGHT/2}}
 input_buffer: InputBuffer
 player: ^Entity
 entities: [dynamic]Entity
@@ -41,7 +41,7 @@ entities: [dynamic]Entity
 
 main :: proc() {
 	append(&entities, Entity {radius=10, height=8, tag = .Player})
-	rl.InitWindow(c.int(SCREEN_WIDTH), c.int(SCREEN_HEIGHT), "Moonflower")
+	rl.InitWindow(c.int(WINDOW_WIDTH), c.int(WINDOW_HEIGHT), "Moonflower")
 	defer rl.CloseWindow()
 
 	offscreen = rl.LoadRenderTexture(c.int(SCREEN_WIDTH), c.int(SCREEN_HEIGHT))

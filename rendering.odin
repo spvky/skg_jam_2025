@@ -21,22 +21,6 @@ draw_entities :: proc(alpha: f32) {
 	}
 }
 
-resize_window :: proc(width, height: c.int) {
-	rl.SetWindowSize(width,height)
-	WINDOW_WIDTH = f32(width)
-	WINDOW_HEIGHT = f32(height)
-
-	letterbox.width = SCREEN_WIDTH
-	letterbox.height = SCREEN_HEIGHT
-
-	ratio_x := WINDOW_WIDTH / f32(SCREEN_WIDTH)
-	ratio_y := WINDOW_HEIGHT / f32(SCREEN_HEIGHT)
-	ratio := min(ratio_x, ratio_y)
-	offset_x := (WINDOW_WIDTH - ratio * SCREEN_WIDTH) * 0.5
-	offset_y := (WINDOW_HEIGHT - ratio * SCREEN_HEIGHT) * 0.5
-
-	letterbox = rl.Rectangle{x = offset_x, y = offset_y, width = ratio * SCREEN_WIDTH, height = ratio * SCREEN_HEIGHT}
-}
 
 render :: proc(alpha: f32) {
 	rl.BeginTextureMode(offscreen)
@@ -53,6 +37,7 @@ draw :: proc() {
 	rl.ClearBackground(rl.BLACK)
 	render_source := rl.Rectangle{0,0, SCREEN_WIDTH, -SCREEN_HEIGHT}
 	render_origin := Vec2{0,0}
-	rl.DrawTexturePro(offscreen.texture, render_source, letterbox, render_origin, 0, rl.WHITE)
+	rect := rl.Rectangle{0,0, WINDOW_WIDTH, WINDOW_HEIGHT}
+	rl.DrawTexturePro(offscreen.texture, render_source, rect, render_origin, 0, rl.WHITE)
 	rl.EndDrawing()
 }
