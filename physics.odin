@@ -16,53 +16,49 @@ Dynamic_Body :: struct {
 	grounded: bool
 }
 
-physics_step :: proc(platforms: []Platform, player: ^Player, frametime: f32) {
-	bodies := make([dynamic]Dynamic_Body,0,8, allocator = context.temp_allocator)
-	player_platform_collision(player, platforms)
-	player_input(player, frametime)
-	append(&bodies, Dynamic_Body {
-		translation = &player.translation,
-		velocity = &player.velocity,
-		grounded = player.grounded
-	})
-
-	apply_gravity(bodies[:], frametime)
-	simulate_dynamics(bodies[:], frametime)
+physics_step :: proc() {
+	entity_platform_collision()
+	player_jump()
+	apply_gravity()
+	simulate_dynamics()
 }
 
-simulate_dynamics :: proc(bodies: []Dynamic_Body, frametime: f32) {
-	for body in bodies {
-		body.translation^ += body.velocity^ * frametime
+simulate_dynamics :: proc() {
+	for &entity in entities {
+		entity.snapshot = entity.translation
+		entity.translation += entity.velocity * TICK_RATE
 	}
 }
 
-apply_gravity :: proc(bodies: []Dynamic_Body, frametime: f32) {
-	for body in bodies {
-		if body.grounded {
-			body.velocity.y = 0
+apply_gravity :: proc() {
+	for &entity in entities {
+		if entity.grounded {
+			entity.velocity.y = 0
 		} else {
-			body.velocity.y += 100 * frametime
+			entity.velocity.y += 100 * TICK_RATE
 		}
 	}
 }
 
+entity_platform_collision :: proc() {
+	normal_platforms := platform_make_iter(platforms[:])
+	one_way_platforms := platform_make_iter(platforms[:], .OneWay)
 
-dynamic_platform_collision :: proc(translation: Vec2, radius: f32, platforms: []Platform) -> [dynamic]Collision_Data {
-	collisions := make([dynamic]Collision_Data, 0, 8, allocator = context.temp_allocator)
+	for &entity in entities {
+	
+		if entity.velocity.y >= 0 && !entity.holding_down {
+		}
 
-	for platform in platforms {
-		nearest := project_point_onto_platform(platform, translation)
-		if l.distance(nearest,translation) < radius {
-				collision_vector := translation - nearest
-				penetration_depth := radius - l.length(collision_vector)
-			append(&collisions, Collision_Data {
-				collision_normal = l.normalize(collision_vector),
-				collision_point = nearest,
-				penetration_depth = penetration_depth
-			})
+		// grounded check
+		for platform in platforms {
+			half_height := Vec2{0, entity.height/2}
+			nearest_platform := project_point_onto_platform(platform, entity.translation)
+			nearest_entity := l.clamp(nearest_platform, entity.translation - half_height, entity.translation + half_height)
+			if l.distance(nearest_entity, nearest_platform) < 1 && entity.velocity.y >= 0 {
+				entity.grounded = true
+			}
 		}
 	}
-	return collisions
 }
 
 

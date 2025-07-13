@@ -1,74 +1,81 @@
 package main
 
 import "core:fmt"
+import "core:c"
 import rl "vendor:raylib"
 import sa "core:container/small_array"
 
 Vec2 :: [2]f32
 
-SCREEN_WIDTH :: 1600
-SCREEN_HEIGHT :: 900
+WINDOW_WIDTH : f32 = 1600.0
+WINDOW_HEIGHT : f32 = 900.0
+
+SCREEN_WIDTH :: 800
+SCREEN_HEIGHT :: 450
+
+letterbox :rl.Rectangle = {0,0,1600,900}
 
 TICK_RATE :: 1.0/200.0
 
 
 Time :: struct {
-	t0: f32,
-	t1: f32,
+	t: f32,
 	simulation_time: f32,
 	started: bool
 }
 
-update :: proc(using time: ^Time) {
-	if !started {
-		t0 = f32(rl.GetTime())
-		started = true
+
+
+// Global values
+offscreen: rl.RenderTexture2D
+time: Time
+platforms := [?]Platform {
+	make_platform({-25,25}, 50, 10)
+}
+camera := rl.Camera2D {zoom = 1, offset = Vec2 {SCREEN_WIDTH/4,SCREEN_HEIGHT/4}}//, offset = Vec2{-SCREEN_WIDTH/2,-SCREEN_HEIGHT/2}}
+input_buffer: InputBuffer
+player: ^Entity
+entities: [dynamic]Entity
+
+
+
+main :: proc() {
+	append(&entities, Entity {radius=10, height=8, tag = .Player})
+	rl.InitWindow(c.int(SCREEN_WIDTH), c.int(SCREEN_HEIGHT), "Moonflower")
+	defer rl.CloseWindow()
+
+	offscreen = rl.LoadRenderTexture(c.int(SCREEN_WIDTH), c.int(SCREEN_HEIGHT))
+
+	for !rl.WindowShouldClose() {
+		alpha := update()
+		render(alpha)
+		draw()
+		free_all(context.temp_allocator)
 	}
+	delete(entities)
+}
 
+
+
+update :: proc() -> f32 {
+	if !time.started {
+		time.t = f32(rl.GetTime())
+		time.started = true
+	}
 	// Get Input
+	input()
 
-	t1 = f32(rl.GetTime())
-	elapsed := t1 - t0
+	t1 := f32(rl.GetTime())
+	elapsed := t1 - time.t
 	if elapsed > 0.25 {
 		elapsed = 0.25
 	}
-	t0 = t1
-	simulation_time += elapsed
-	for simulation_time >= TICK_RATE {
+	time.t = t1
+	time.simulation_time += elapsed
+	for time.simulation_time >= TICK_RATE {
 		// Physics stuff
-		simulation_time -= TICK_RATE
+		physics_step()
+		time.simulation_time -= TICK_RATE
 	}
-}
-
-main :: proc() {
-	game_time: f32
-	physics_time: f32
-
-	time: Time
-
-	platforms := [?]Platform {
-		make_platform({-25,25}, 50, 10)
-	}
-
-	rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Moonflower")
-	defer rl.CloseWindow()
-	camera := rl.Camera2D {zoom = 10, offset = Vec2{SCREEN_WIDTH/2,SCREEN_HEIGHT/2}}
-	player := Player {radius=10, height=8}
-
-	for !rl.WindowShouldClose() {
-
-		// Physics
-		frametime := rl.GetFrameTime()
-		t0 := rl.GetTime()
-
-		t1 := rl.GetTime()
-		physics_step(platforms[:], &player, frametime)
-
-
-		rl.BeginDrawing()
-		rl.ClearBackground({12,37,31,255})
-		camera.target = 0
-		render(camera, platforms[:], player)
-		rl.EndDrawing()
-	}
+	return time.simulation_time / TICK_RATE
 }
