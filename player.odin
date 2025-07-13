@@ -31,6 +31,28 @@ input :: proc() {
 				}
 		}
 	}
+
+	player_movement()
+}
+
+player_movement :: proc() {
+	for &entity in entities {
+		if entity.tag == .Player {
+			delta: f32
+			if rl.IsKeyDown(.A) {
+				delta -= 1
+			}
+			if rl.IsKeyDown(.D) {
+				delta += 1
+			}
+
+			if delta == 0 {
+				entity.velocity.x = entity.velocity.x * 0.999
+			} else {
+				entity.velocity.x = delta * 50
+			}
+		}
+	}
 }
 
 player_jump :: proc() {

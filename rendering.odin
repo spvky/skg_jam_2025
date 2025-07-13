@@ -6,7 +6,8 @@ import l "core:math/linalg"
 
 draw_platforms :: proc() {
 	for platform in platforms {
-		rl.DrawRectangleV(platform.translation, platform.size, rl.WHITE)
+		rec := rl.Rectangle{x = platform.translation.x, y = platform.translation.y, width = platform.size.x, height = platform.size.y}
+		rl.DrawRectanglePro(rec, platform.size / 2, 0, rl.WHITE)
 	}
 }
 
@@ -16,7 +17,9 @@ draw_entities :: proc(alpha: f32) {
 		color := rl.RED
 		if entity.tag == .Player {
 			color = entity.grounded ? rl.WHITE : rl.BLUE
-			rl.DrawCircleV(position, entity.radius, color)
+			size := Vec2 {entity.radius * 2, entity.height}
+			rl.DrawCircleV(position + {0, entity.height / 2}, entity.radius, color)
+			rl.DrawCircleV(position - {0, entity.height / 2}, entity.radius, color)
 		}
 	}
 }

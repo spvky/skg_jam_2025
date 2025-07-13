@@ -30,7 +30,7 @@ Time :: struct {
 offscreen: rl.RenderTexture2D
 time: Time
 platforms := [?]Platform {
-	make_platform({-25,25}, 50, 10)
+	make_platform({0,50}, 500, 10)
 }
 camera := rl.Camera2D {zoom = 1, offset = Vec2 {SCREEN_WIDTH/2,SCREEN_HEIGHT/2}}//, offset = Vec2{-SCREEN_WIDTH/2,-SCREEN_HEIGHT/2}}
 input_buffer: InputBuffer
@@ -40,7 +40,7 @@ entities: [dynamic]Entity
 
 
 main :: proc() {
-	append(&entities, Entity {radius=10, height=8, tag = .Player})
+	append(&entities, Entity {radius=4, height=8, tag = .Player})
 	rl.InitWindow(c.int(WINDOW_WIDTH), c.int(WINDOW_HEIGHT), "Moonflower")
 	defer rl.CloseWindow()
 
