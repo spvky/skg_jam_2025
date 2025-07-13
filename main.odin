@@ -36,7 +36,7 @@ platforms := [?]Platform {
 	make_platform({-50,0}, 10, 100),
 }
 camera := rl.Camera2D {zoom = 1, offset = Vec2 {SCREEN_WIDTH/2,SCREEN_HEIGHT/2}}//, offset = Vec2{-SCREEN_WIDTH/2,-SCREEN_HEIGHT/2}}
-input_buffer: InputBuffer
+input_buffer: Input_Buffer
 player: ^Entity
 entities: [dynamic]Entity
 

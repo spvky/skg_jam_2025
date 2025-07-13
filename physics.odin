@@ -26,16 +26,27 @@ physics_step :: proc() {
 simulate_dynamics :: proc() {
 	for &entity in entities {
 		entity.snapshot = entity.translation
-		entity.translation += entity.velocity * TICK_RATE
+		#partial switch entity.state {
+			case .Slide:
+				wall_slide_velocity := Vec2{entity.velocity.x, entity.velocity.y / 10}
+				entity.translation += entity.velocity * TICK_RATE
+			case:
+				entity.translation += entity.velocity * TICK_RATE
+		}
 	}
 }
 
 apply_gravity :: proc() {
 	for &entity in entities {
-		if entity.grounded {
-			entity.velocity.y = 0
-		} else {
-			entity.velocity.y += 100 * TICK_RATE
+		switch entity.state {
+			case .Airborne:
+				entity.velocity.y += 100 * TICK_RATE
+			case .Slide:
+				entity.velocity.y += 50 * TICK_RATE
+			case .Drill:
+				entity.velocity.y += 150 * TICK_RATE
+			case .Grounded:
+				entity.velocity.y = 0
 		}
 	}
 }
@@ -56,17 +67,19 @@ entity_platform_collision :: proc() {
 	for &entity in entities {
 		collisions := make([dynamic]Collision_Data, 0, 8, allocator = context.temp_allocator)
 
+		// Find collisions
 		for platform in platforms {
 			half_height := Vec2{0, entity.height/2}
 			nearest_platform := project_point_onto_platform(platform, entity.translation)
 			nearest_entity := l.clamp(nearest_platform, entity.translation - half_height, entity.translation + half_height)
 
-			should_ignore := entity.velocity.y < 1 && platform.type == .OneWay
-			if l.distance(nearest_entity, nearest_platform) < entity.radius  && !should_ignore{
+			// should_ignore := entity.velocity.y < 1 && platform.type == .OneWay
+			if l.distance(nearest_entity, nearest_platform) < entity.radius  && platform.type != .OneWay {//!should_ignore{
 				calculate_collision(&collisions, nearest_entity, nearest_platform, entity.radius)
 			}
 		}
 
+		// Respond to collisions
 		for collision in collisions {
 			entity.translation += collision.mtv
 			x_dot := math.abs(l.dot(collision.normal, Vec2{1,0}))
@@ -79,19 +92,60 @@ entity_platform_collision :: proc() {
 			}
 		}
 
-		// grounded check
+		// Grounded and Wall Slide checks
 		ground_hits: int
+		right_wall_hits: int
+		left_wall_hits: int
 		for platform in platforms {
+			//Grounded
 			feet_position := entity.translation + Vec2{0, entity.height}
-			nearest_platform := project_point_onto_platform(platform, feet_position)
-			if l.distance(feet_position, nearest_platform) < 1 && entity.velocity.y >= 0 {
+			nearest_feet := project_point_onto_platform(platform, feet_position)
+			if l.distance(feet_position, nearest_feet) < 1 && entity.velocity.y >= 0 {
 				ground_hits += 1
 			}
+
+			if platform.type != .OneWay {
+				// Right Wall
+				right_position := entity.translation + Vec2{entity.radius, 0}
+				nearest_right := project_point_onto_platform(platform, right_position)
+				if l.distance(right_position, nearest_right) < 5 && entity.velocity.y >= 0 {
+					right_wall_hits += 1
+				}
+				
+				// Left wall
+				left_position := entity.translation - Vec2{entity.radius, 0}
+				nearest_left := project_point_onto_platform(platform, left_position)
+				if l.distance(left_position, nearest_left) < 5 && entity.velocity.y >= 0 {
+					left_wall_hits += 1
+				}
+			}
 		}
+
+		sliding: bool
+
+
+		if right_wall_hits > 0 {
+			entity.sliding_wall = .Right
+			sliding = true
+		}
+
+		if left_wall_hits > 0 {
+			entity.sliding_wall = .Left
+			sliding = true
+		}
+
+
+		// Handle grounded state last because it overrides wall sliding
 		if ground_hits > 0 {
-			entity.grounded = true
+			entity.state = .Grounded
 		} else {
-			entity.grounded = false
+			if sliding {
+				entity.state = .Slide
+			} else {
+				if entity.state != .Drill {
+					entity.state = .Airborne
+				}
+			}
 		}
 	}
 }

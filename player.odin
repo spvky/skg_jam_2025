@@ -4,34 +4,51 @@ import l "core:math/linalg"
 import rl "vendor:raylib"
 import sa "core:container/small_array"
 
-InputBuffer :: struct {
-	input: BufferedInput
+Input_Buffer :: struct {
+	actions: [Input_Action]Buffered_Input
 }
 
+Buffered_Input :: union {f32}
 
-BufferedInput :: union {f32}
+Input_Action :: enum {
+	Jump,
+	Drill
+}
 
-
-input :: proc() {
+update_buffer :: proc() {
 	frametime := rl.GetFrameTime()
-
-	if rl.IsKeyPressed(.SPACE) {
-		switch &v in input_buffer.input {
-			case f32:
-				v = 0.3
-			case:
-				input_buffer.input = 0.3
-		}
-	} else {
-		switch &v in input_buffer.input {
+	for &buffered in input_buffer.actions {
+		switch &v in buffered {
 			case f32:
 				v -= frametime
 				if v <= 0 {
-					input_buffer.input = nil
+					buffered = nil
 				}
 		}
 	}
+}
 
+buffer_action :: proc(action: Input_Action) {
+	switch &v in input_buffer.actions[action] {
+		case f32:
+			v = 0.4
+		case:
+			input_buffer.actions[action] = 0.4
+	}
+}
+
+
+is_action_buffered :: proc(action: Input_Action) -> bool {
+	_, action_pressed := input_buffer.actions[action].(f32)
+	return action_pressed
+}
+
+input :: proc() {
+	frametime := rl.GetFrameTime()
+	update_buffer()
+	// Tracking raw input in the input buffer
+	if rl.IsKeyPressed(.SPACE) do buffer_action(.Jump)
+	if rl.IsKeyPressed(.J) do buffer_action(.Drill)
 	player_movement()
 }
 
@@ -46,10 +63,18 @@ player_movement :: proc() {
 				delta += 1
 			}
 
+			speed: f32
+			#partial switch entity.state {
+				case .Drill:
+					speed = 25
+				case:
+					speed = 50
+			}
+
 			if delta == 0 {
 				entity.velocity.x = entity.velocity.x * 0.999
 			} else {
-				entity.velocity.x = delta * 50
+				entity.velocity.x = delta * speed
 			}
 		}
 	}
@@ -58,10 +83,28 @@ player_movement :: proc() {
 player_jump :: proc() {
 	for &entity in entities {
 		if entity.tag == .Player {
-			_, jump_pressed := input_buffer.input.(f32)
-			if jump_pressed && entity.grounded {
-				entity.velocity.y = -60
-				entity.grounded = false
+			if is_action_buffered(.Jump) {
+				#partial switch entity.state {
+					case .Grounded:
+						entity.velocity.y = -60
+						entity.state = .Airborne
+					case .Slide:
+				}
+			}
+
+			if is_action_buffered(.Drill) {
+				#partial switch entity.state {
+					case .Grounded:
+						entity.velocity.y = -100
+						entity.state = .Drill
+					case .Airborne:
+						if entity.velocity.y < 10 {
+							entity.velocity.y = 10
+						} else {
+							entity.velocity.y += 10
+						}
+						entity.state = .Drill
+				}
 			}
 		}
 	}

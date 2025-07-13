@@ -16,7 +16,16 @@ draw_entities :: proc(alpha: f32) {
 		position := l.lerp(entity.snapshot, entity.translation, alpha)
 		color := rl.RED
 		if entity.tag == .Player {
-			color = entity.grounded ? rl.WHITE : rl.BLUE
+			#partial switch entity.state {
+			case .Slide:
+				color = rl.GREEN
+			case .Airborne:
+				color = rl.BLUE
+			case .Drill:
+				color = rl.PINK
+			case:
+				color = rl.WHITE
+			}
 			size := Vec2 {entity.radius * 2, entity.height}
 			rl.DrawCircleV(position + {0, entity.height / 2}, entity.radius, color)
 			rl.DrawCircleV(position - {0, entity.height / 2}, entity.radius, color)

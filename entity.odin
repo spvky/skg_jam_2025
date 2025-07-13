@@ -7,11 +7,24 @@ Entity :: struct {
 	height: f32,
 	radius: f32,
 	velocity: Vec2,
-	grounded: bool,
+	state: Entity_State,
+	sliding_wall: Sliding_Wall,
 	holding_down: bool,
 }
 
 EntityTag :: enum {
 	Player,
 	Enemy
+}
+
+Entity_State :: enum {
+	Grounded,
+	Airborne,
+	Drill,
+	Slide
+}
+
+Sliding_Wall :: enum {
+	Right,
+	Left
 }
