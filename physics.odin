@@ -13,6 +13,37 @@ Collision_Data :: struct {
 Dynamic_Body :: struct {
 	translation: ^Vec2,
 	velocity: ^Vec2,
+	grounded: bool
+}
+
+physics_step :: proc(platforms: []Platform, player: ^Player, frametime: f32) {
+	bodies := make([dynamic]Dynamic_Body,0,8, allocator = context.temp_allocator)
+	player_platform_collision(player, platforms)
+	player_input(player, frametime)
+	append(&bodies, Dynamic_Body {
+		translation = &player.translation,
+		velocity = &player.velocity,
+		grounded = player.grounded
+	})
+
+	apply_gravity(bodies[:], frametime)
+	simulate_dynamics(bodies[:], frametime)
+}
+
+simulate_dynamics :: proc(bodies: []Dynamic_Body, frametime: f32) {
+	for body in bodies {
+		body.translation^ += body.velocity^ * frametime
+	}
+}
+
+apply_gravity :: proc(bodies: []Dynamic_Body, frametime: f32) {
+	for body in bodies {
+		if body.grounded {
+			body.velocity.y = 0
+		} else {
+			body.velocity.y += 100 * frametime
+		}
+	}
 }
 
 
