@@ -51,5 +51,6 @@ draw :: proc() {
 	render_origin := Vec2{0,0}
 	rect := rl.Rectangle{0,0, WINDOW_WIDTH, WINDOW_HEIGHT}
 	rl.DrawTexturePro(offscreen.texture, render_source, rect, render_origin, 0, rl.WHITE)
+	print_player_velocity()
 	rl.EndDrawing()
 }

@@ -1,5 +1,7 @@
 package main
 
+import "core:fmt"
+import "core:strings"
 import l "core:math/linalg"
 import rl "vendor:raylib"
 import sa "core:container/small_array"
@@ -47,6 +49,10 @@ buffer_action :: proc(action: Input_Action) {
 }
 
 
+consume_action :: proc(action: Input_Action) {
+	input_buffer.actions[action] = nil
+}
+
 is_action_buffered :: proc(action: Input_Action) -> bool {
 	_, action_pressed := input_buffer.actions[action].(f32)
 	return action_pressed
@@ -80,13 +86,22 @@ player_movement :: proc() {
 					speed = 50
 			}
 
-			if delta == 0 {
-				entity.velocity.x = entity.velocity.x * 0.999
-			} else {
-				if input_buffer.lockout == 0 {
+			if input_buffer.lockout == 0 {
+				if delta == 0 {
+					entity.velocity.x = entity.velocity.x * 0.999
+				} else {
 					entity.velocity.x = delta * speed
 				}
 			}
+		}
+	}
+}
+
+print_player_velocity :: proc() {
+	for entity in entities {
+		if entity.tag == .Player {
+			velo_string := fmt.tprintf("Velocity: %v", entity.velocity)
+			rl.DrawText(strings.clone_to_cstring(velo_string),10, 10, 24, rl.WHITE)
 		}
 	}
 }
@@ -100,17 +115,18 @@ player_jump :: proc() {
 						entity.velocity.y = -60
 						entity.state = .Airborne
 					case .Slide:
-						jump_force:= Vec2 {0,-25}
+						jump_force:= Vec2 {0,-35}
 						switch entity.sliding_wall {
 							case .Right:
-								jump_force.x = -30
+								jump_force.x = -50
 							case .Left:
-								jump_force.x = 30
+								jump_force.x = 50
 						}
 						entity.velocity = jump_force
 						entity.state = .Airborne
 						input_buffer.lockout = 0.25
 				}
+				consume_action(.Jump)
 			}
 
 			if is_action_buffered(.Drill) {
