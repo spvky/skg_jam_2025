@@ -89,6 +89,8 @@ print_player_velocity :: proc() {
 			rl.DrawText(strings.clone_to_cstring(velo_string),10, 10, 24, rl.WHITE)
 		}
 	}
+	camera_string := fmt.tprintf("Camera Y Offset: %5.2f", camera.offset.y)
+	rl.DrawText(strings.clone_to_cstring(camera_string),10, 34, 24, rl.WHITE)
 }
 
 player_jump :: proc() {

@@ -40,11 +40,17 @@ draw_entities :: proc(alpha: f32) {
 	}
 }
 
+update_camera_offset :: proc(alpha: f32) {
+	frametime := rl.GetFrameTime()
+	camera_control.target_offset.y += 10 * frametime
+	camera.offset.y = l.lerp(camera.offset.y, camera_control.target_offset.y, frametime * 10)
+}
 
 render :: proc(alpha: f32) {
 	rl.BeginTextureMode(offscreen)
 	rl.BeginMode2D(camera)
 	rl.ClearBackground({12,37,31,255})
+	update_camera_offset(alpha)
 	draw_platforms()
 	draw_entities(alpha)
 	rl.EndMode2D()
