@@ -6,6 +6,7 @@ import rl "vendor:raylib"
 import sa "core:container/small_array"
 
 Vec2 :: [2]f32
+Vec3 :: [3]f32
 
 WINDOW_WIDTH : f32 = 1600.0
 WINDOW_HEIGHT : f32 = 900.0
@@ -26,8 +27,6 @@ CameraControl :: struct {
 	target_offset: Vec2
 }
 
-
-
 // Global values
 offscreen: rl.RenderTexture2D
 time: Time
@@ -39,6 +38,7 @@ platforms := [?]Platform {
 }
 camera_control := CameraControl {target_offset = Vec2 {SCREEN_WIDTH/2,SCREEN_HEIGHT/2}}
 camera := rl.Camera2D {zoom = 1, offset = Vec2 {SCREEN_WIDTH/2,SCREEN_HEIGHT/2}}
+camera_3d := rl.Camera3D { position = {0,25,200}, up = {0,1,0}, projection = .PERSPECTIVE, fovy = 45, target ={0,25,0}}
 input_buffer: Input_Buffer
 entities: [dynamic]Entity
 
@@ -54,7 +54,8 @@ main :: proc() {
 
 	for !rl.WindowShouldClose() {
 		alpha := update()
-		render(alpha)
+		// render(alpha)
+		render_3d(alpha)
 		draw()
 		free_all(context.temp_allocator)
 	}
