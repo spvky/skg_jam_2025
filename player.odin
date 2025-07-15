@@ -85,7 +85,7 @@ set_player_delta :: proc() {
 print_player_velocity :: proc() {
 	for entity in entities {
 		if entity.tag == .Player {
-			velo_string := fmt.tprintf("Velocity: %v", entity.velocity)
+			velo_string := fmt.tprintf("Velocity: [%5.2f,%5.2f]", entity.velocity.x, entity.velocity.y)
 			rl.DrawText(strings.clone_to_cstring(velo_string),10, 10, 24, rl.WHITE)
 		}
 	}

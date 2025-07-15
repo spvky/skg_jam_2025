@@ -1,6 +1,7 @@
 package main
 
 import "core:math"
+import "core:fmt"
 
 Entity :: struct {
 	tag: EntityTag,
