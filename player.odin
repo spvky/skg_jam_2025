@@ -119,7 +119,7 @@ player_jump :: proc() {
 			if is_action_buffered(.Drill) {
 				#partial switch entity.state {
 					case .Grounded:
-						entity.velocity.y = -100
+						entity.velocity.y = -70
 						entity.state = .Drill
 						consume_action(.Drill)
 					case .Airborne:

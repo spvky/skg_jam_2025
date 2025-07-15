@@ -6,8 +6,15 @@ import l "core:math/linalg"
 
 draw_platforms :: proc() {
 	for platform in platforms {
+		color: rl.Color
+		switch platform.type {
+			case .Normal, .OneWay:
+				color = rl.WHITE
+			case .Spike:
+				color = rl.RED
+		}
 		rec := rl.Rectangle{x = platform.translation.x, y = platform.translation.y, width = platform.size.x, height = platform.size.y}
-		rl.DrawRectanglePro(rec, platform.size / 2, 0, rl.WHITE)
+		rl.DrawRectanglePro(rec, platform.size / 2, 0, color)
 	}
 }
 

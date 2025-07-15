@@ -5,7 +5,12 @@ import sa "core:container/small_array"
 
 Platform_Type :: enum {
 	Normal,
-	OneWay
+	OneWay,
+	Spike
+}
+
+Moving_Platform :: struct {
+	
 }
 
 Platform :: struct {
@@ -22,6 +27,7 @@ make_platform :: proc(translation: Vec2, width: f32, height: f32, type: Platform
 		type = type
 	}
 }
+
 
 Platform_Iter :: struct {
 	platforms: sa.Small_Array(20, Platform),

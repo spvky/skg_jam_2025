@@ -42,7 +42,7 @@ make_player :: proc() -> Entity {
 				deceleration = 0.025
 			},
 			.Drill = Speed{
-				max = 25,
+				max = 50,
 				acceleration = 150,
 				base_acceleration = 150,
 				deceleration = 0.025

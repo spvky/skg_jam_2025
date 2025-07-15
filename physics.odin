@@ -4,6 +4,7 @@ import "core:fmt"
 import "core:math"
 import sa "core:container/small_array"
 import l "core:math/linalg"
+import rl "vendor:raylib"
 
 Collision_Data :: struct {
 	normal: Vec2,
@@ -125,24 +126,35 @@ entity_platform_collision :: proc() {
 		left_wall_hits: int
 		for platform in platforms {
 			//Grounded
-			feet_position := entity.translation + Vec2{0, entity.height}
+			feet_position := entity.translation + Vec2{0, entity.height - 2.5}
 			nearest_feet := project_point_onto_platform(platform, feet_position)
-			if l.distance(feet_position, nearest_feet) < 1 && entity.velocity.y >= 0 {
-				ground_hits += 1
+			switch platform.type {
+				case .Normal, .OneWay:
+					if l.distance(feet_position, nearest_feet) < 3 && entity.velocity.y >= 0 {
+						ground_hits += 1
+					}
+				case .Spike:
+					if l.distance(feet_position, nearest_feet) < 4 && entity.state == .Drill && entity.tag == .Player{
+						if rl.IsKeyDown(.J) {
+							entity.velocity.y = -80
+						} else {
+							entity.velocity.y = -35
+						}
+					}
 			}
 
 			if platform.type != .OneWay {
 				// Right Wall
 				right_position := entity.translation + Vec2{entity.radius, 0}
 				nearest_right := project_point_onto_platform(platform, right_position)
-				if l.distance(right_position, nearest_right) < 1 && entity.velocity.y >= 0 {
+				if l.distance(right_position, nearest_right) < 2 && entity.velocity.y >= 0 {
 					right_wall_hits += 1
 				}
 				
 				// Left wall
 				left_position := entity.translation - Vec2{entity.radius, 0}
 				nearest_left := project_point_onto_platform(platform, left_position)
-				if l.distance(left_position, nearest_left) < 1 && entity.velocity.y >= 0 {
+				if l.distance(left_position, nearest_left) < 2 && entity.velocity.y >= 0 {
 					left_wall_hits += 1
 				}
 			}
