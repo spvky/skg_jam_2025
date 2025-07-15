@@ -13,8 +13,6 @@ WINDOW_HEIGHT : f32 = 900.0
 SCREEN_WIDTH :: 400
 SCREEN_HEIGHT :: 225
 
-letterbox :rl.Rectangle = {0,0,1600,900}
-
 TICK_RATE :: 1.0/200.0
 
 
