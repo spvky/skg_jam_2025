@@ -42,9 +42,9 @@ update_buffer :: proc() {
 buffer_action :: proc(action: Input_Action) {
 	switch &v in input_buffer.actions[action] {
 		case f32:
-			v = 0.4
+			v = 0.15
 		case:
-			input_buffer.actions[action] = 0.4
+			input_buffer.actions[action] = 0.15
 	}
 }
 
@@ -64,35 +64,20 @@ input :: proc() {
 	// Tracking raw input in the input buffer
 	if rl.IsKeyPressed(.SPACE) do buffer_action(.Jump)
 	if rl.IsKeyPressed(.J) do buffer_action(.Drill)
-	player_movement()
+	set_player_delta()
 }
 
-player_movement :: proc() {
+set_player_delta :: proc() {
 	for &entity in entities {
 		if entity.tag == .Player {
 			delta: f32
-			if rl.IsKeyDown(.A) {
+			if rl.IsKeyDown(.A) && input_buffer.lockout == 0 {
 				delta -= 1
 			}
-			if rl.IsKeyDown(.D) {
+			if rl.IsKeyDown(.D) && input_buffer.lockout == 0 {
 				delta += 1
 			}
-
-			speed: f32
-			#partial switch entity.state {
-				case .Drill:
-					speed = 25
-				case:
-					speed = 50
-			}
-
-			if input_buffer.lockout == 0 {
-				if delta == 0 {
-					entity.velocity.x = entity.velocity.x * 0.999
-				} else {
-					entity.velocity.x = delta * speed
-				}
-			}
+			entity.x_delta = delta
 		}
 	}
 }
@@ -114,19 +99,21 @@ player_jump :: proc() {
 					case .Grounded:
 						entity.velocity.y = -60
 						entity.state = .Airborne
+						consume_action(.Jump)
 					case .Slide:
-						jump_force:= Vec2 {0,-35}
+						jump_force:= Vec2 {0,-45}
 						switch entity.sliding_wall {
 							case .Right:
-								jump_force.x = -50
+								jump_force.x = -150
 							case .Left:
-								jump_force.x = 50
+								jump_force.x = 150
 						}
 						entity.velocity = jump_force
 						entity.state = .Airborne
 						input_buffer.lockout = 0.25
+						entity.speed[.Slide].acceleration = 0
+						consume_action(.Jump)
 				}
-				consume_action(.Jump)
 			}
 
 			if is_action_buffered(.Drill) {
@@ -134,13 +121,15 @@ player_jump :: proc() {
 					case .Grounded:
 						entity.velocity.y = -100
 						entity.state = .Drill
+						consume_action(.Drill)
 					case .Airborne:
-						if entity.velocity.y < 10 {
-							entity.velocity.y = 10
+						if entity.velocity.y < 100 {
+							entity.velocity.y = 100
 						} else {
-							entity.velocity.y += 10
+							entity.velocity.y += 100
 						}
 						entity.state = .Drill
+						consume_action(.Drill)
 				}
 			}
 		}

@@ -20,6 +20,7 @@ physics_step :: proc() {
 	entity_platform_collision()
 	player_jump()
 	apply_gravity()
+	manage_entity_x_velocity()
 	simulate_dynamics()
 }
 
@@ -47,6 +48,32 @@ apply_gravity :: proc() {
 				entity.velocity.y += 150 * TICK_RATE
 			case .Grounded:
 				entity.velocity.y = 0
+		}
+	}
+}
+
+manage_entity_x_velocity :: proc() {
+	for &entity in entities {
+		current_state := entity.state
+		max, acceleration, deceleration := entity.speed[current_state].max, entity.speed[current_state].acceleration, entity.speed[current_state].deceleration
+		if entity.x_delta != 0 {
+			if entity.x_delta * entity.velocity.x < max {
+				entity.velocity.x += TICK_RATE * acceleration * entity.x_delta
+			}
+		} else {
+			factor := 1 - deceleration
+			entity.velocity.x = entity.velocity.x * factor
+			if math.abs(entity.velocity.x) < 0.3 {
+				entity.velocity.x = 0
+			}
+		}
+		for &speed in entity.speed {
+			if speed.acceleration < speed.base_acceleration {
+				speed.acceleration += speed.base_acceleration * TICK_RATE
+				if speed.acceleration > speed.base_acceleration {
+					speed.acceleration = speed.base_acceleration
+				}
+			}
 		}
 	}
 }
@@ -108,21 +135,20 @@ entity_platform_collision :: proc() {
 				// Right Wall
 				right_position := entity.translation + Vec2{entity.radius, 0}
 				nearest_right := project_point_onto_platform(platform, right_position)
-				if l.distance(right_position, nearest_right) < 5 && entity.velocity.y >= 0 {
+				if l.distance(right_position, nearest_right) < 1 && entity.velocity.y >= 0 {
 					right_wall_hits += 1
 				}
 				
 				// Left wall
 				left_position := entity.translation - Vec2{entity.radius, 0}
 				nearest_left := project_point_onto_platform(platform, left_position)
-				if l.distance(left_position, nearest_left) < 5 && entity.velocity.y >= 0 {
+				if l.distance(left_position, nearest_left) < 1 && entity.velocity.y >= 0 {
 					left_wall_hits += 1
 				}
 			}
 		}
 
 		sliding: bool
-
 
 		if right_wall_hits > 0 {
 			entity.sliding_wall = .Right
@@ -133,7 +159,6 @@ entity_platform_collision :: proc() {
 			entity.sliding_wall = .Left
 			sliding = true
 		}
-
 
 		// Handle grounded state last because it overrides wall sliding
 		if ground_hits > 0 {

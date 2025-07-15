@@ -35,15 +35,15 @@ platforms := [?]Platform {
 	make_platform({50,0}, 10, 100),
 	make_platform({-50,0}, 10, 100),
 }
-camera := rl.Camera2D {zoom = 1, offset = Vec2 {SCREEN_WIDTH/2,SCREEN_HEIGHT/2}}//, offset = Vec2{-SCREEN_WIDTH/2,-SCREEN_HEIGHT/2}}
+camera := rl.Camera2D {zoom = 1, offset = Vec2 {SCREEN_WIDTH/2,SCREEN_HEIGHT/2}}
 input_buffer: Input_Buffer
-player: ^Entity
 entities: [dynamic]Entity
 
 
 
 main :: proc() {
-	append(&entities, Entity {radius=4, height=8, tag = .Player})
+	// Add player to the entites array
+	append(&entities, make_player())
 	rl.InitWindow(c.int(WINDOW_WIDTH), c.int(WINDOW_HEIGHT), "Moonflower")
 	defer rl.CloseWindow()
 
