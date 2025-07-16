@@ -6,7 +6,8 @@ import sa "core:container/small_array"
 Platform_Type :: enum {
 	Normal,
 	OneWay,
-	Spike
+	Spike,
+	Water
 }
 
 Moving_Platform :: struct {
