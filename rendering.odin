@@ -27,14 +27,20 @@ render_platforms :: proc() {
 		#partial switch platform.type {
 			case .Normal, .OneWay:
 				color = rl.WHITE
+				position := [3]f32{platform.translation.x, platform.translation.y, 5}
+				size := [3]f32{platform.size.x, platform.size.y, 5}
+				rl.DrawCubeV(position, size, color)
 			case .Spike:
 				color = rl.RED
+				position := [3]f32{platform.translation.x, platform.translation.y, 5}
+				size := [3]f32{platform.size.x, platform.size.y, 5}
+				rl.DrawCubeV(position, size, color)
 			case .Water:
 				color = {0,45,255,100}
+				position := [3]f32{platform.translation.x, platform.translation.y, 5}
+				size := [3]f32{platform.size.x, platform.size.y, 5}
+				rl.DrawCubeWiresV(position, size, color)
 		}
-		position := [3]f32{platform.translation.x, platform.translation.y, 5}
-		size := [3]f32{platform.size.x, platform.size.y, 5}
-		rl.DrawCubeV(position, size, color)
 	}
 }
 

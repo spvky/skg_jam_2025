@@ -16,6 +16,7 @@ Entity :: struct {
 	x_delta: f32,
 	speed: [Entity_State]Speed,
 	last_grounded_pos: Vec2,
+	water_surface: f32
 }
 
 Speed :: struct {
@@ -54,6 +55,12 @@ make_player :: proc() -> Entity {
 				acceleration = 0.1,
 				base_acceleration = 300,
 				deceleration = 0.01
+			},
+			.Submerged = Speed {
+				max = 50,
+				acceleration = 100,
+				base_acceleration = 100,
+				deceleration = 0.01
 			}
 		}
 	}
@@ -68,7 +75,8 @@ Entity_State :: enum {
 	Grounded,
 	Airborne,
 	Drill,
-	Slide
+	Slide,
+	Submerged
 }
 
 Sliding_Wall :: enum {

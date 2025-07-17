@@ -31,8 +31,9 @@ CameraControl :: struct {
 offscreen: rl.RenderTexture2D
 time: Time
 platforms := [?]Platform {
-	make_platform({0,50}, 500, 10),
-	make_platform({0,30}, 5, 5, .Spike),
+	make_platform({0,50}, 500, 100, .Water),
+	// make_platform({0,15}, 30, 10, .Water),
+	// make_platform({0,30}, 5, 5, .Spike),
 	make_platform({50,0}, 10, 100),
 	make_platform({-50,0}, 10, 100),
 }

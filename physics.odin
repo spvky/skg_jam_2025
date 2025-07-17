@@ -47,6 +47,7 @@ apply_gravity :: proc() {
 				player.velocity.y += 150 * TICK_RATE
 			case .Grounded:
 				player.velocity.y = 0
+			case .Submerged:
 		}
 }
 
@@ -90,6 +91,7 @@ player_platform_collision :: proc() {
 
 		collisions := make([dynamic]Collision_Data, 0, 8, allocator = context.temp_allocator)
 
+		in_water := false
 		// Find collisions
 		for platform in platforms {
 			half_height := Vec2{0, player.height/2}
@@ -100,13 +102,15 @@ player_platform_collision :: proc() {
 				if platform.type != .Water {
 					calculate_collision(&collisions, nearest_player, nearest_platform, player.radius, platform.type)
 				} else {
+					in_water = true
 					volume_top := platform.translation.y - (platform.size.y / 2)
-					// Calculate difference between player y position and the top of the watre volume
-					diff := volume_top - player.translation.y
-					submersion_depth := diff / platform.size.y
+					player.water_surface = volume_top
+					// diff := volume_top - player.translation.y
+					// submersion_depth := diff / platform.size.y
 				}
 			}
 		}
+
 
 		// Respond to collisions
 		for collision in collisions {
@@ -181,17 +185,20 @@ player_platform_collision :: proc() {
 		}
 
 		// Handle grounded state last because it overrides wall sliding
-		if ground_hits > 0 {
-			player.state = .Grounded
-		} else {
-			if sliding {
-				player.state = .Slide
+		if !in_water {
+			if ground_hits > 0 {
+				player.state = .Grounded
 			} else {
-				if player.state != .Drill {
-					player.state = .Airborne
+				if sliding {
+					player.state = .Slide
+				} else {
+					if player.state != .Drill {
+						player.state = .Airborne
+					}
 				}
 			}
 		}
+		if in_water do player.state = .Submerged
 }
 
 

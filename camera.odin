@@ -10,7 +10,7 @@ camera_3d := rl.Camera3D { position = {0,25,200}, up = {0,1,0}, projection = .PE
 
 follow_player :: proc() {
 	frametime := rl.GetFrameTime()
-	player_pos := Vec3 {0,player.last_grounded_pos.y, 0}
+	player_pos := Vec3 {0,player.last_grounded_pos.y - 30, 0}
 	camera_3d.target = Vec3{camera_3d.position.x, camera_3d.position.y, camera_3d.position.z - 200}
 	target_camera_pos := Vec3{player_pos.x, player_pos.y, camera_3d.position.z}
 	camera_3d.position = l.lerp(camera_3d.position, target_camera_pos, frametime * 3)
