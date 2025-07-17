@@ -14,7 +14,8 @@ Entity :: struct {
 	sliding_wall: Sliding_Wall,
 	holding_down: bool,
 	x_delta: f32,
-	speed: [Entity_State]Speed
+	speed: [Entity_State]Speed,
+	last_grounded_pos: Vec2,
 }
 
 Speed :: struct {

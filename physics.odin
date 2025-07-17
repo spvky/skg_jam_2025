@@ -135,10 +135,13 @@ player_platform_collision :: proc() {
 			switch platform.type {
 				case .Normal, .OneWay:
 					if l.distance(feet_position, nearest_feet) < 3 && player.velocity.y >= 0 {
+						player.last_grounded_pos = player.translation
 						ground_hits += 1
+
 					}
 				case .Spike:
 					if l.distance(feet_position, nearest_feet) < 4 && player.state == .Drill && player.tag == .Player{
+						player.last_grounded_pos = player.translation
 						if rl.IsKeyDown(.J) {
 							player.velocity.y = -80
 						} else {
