@@ -72,6 +72,9 @@ manage_player_velocity :: proc() {
 			speed_in_direction := l.dot(player.velocity, l.normalize(player.movement_delta))
 				if speed_in_direction < max {
 					player.velocity += l.normalize(player.movement_delta) * TICK_RATE * acceleration
+				} else {
+					factor := 1 - (deceleration/4)
+					player.velocity = player.velocity * factor
 				}
 			} else {
 				factor := 1 - deceleration
@@ -152,14 +155,14 @@ player_platform_collision :: proc() {
 			// Right Wall
 			right_position := player.translation + Vec2{player.radius, 0}
 			nearest_right := project_point_onto_platform(platform, right_position)
-			if l.distance(right_position, nearest_right) < 2 && player.velocity.y >= 0 {
+			if l.distance(right_position, nearest_right) < 2 {
 				right_wall_hits += 1
 			}
 			
 			// Left wall
 			left_position := player.translation - Vec2{player.radius, 0}
 			nearest_left := project_point_onto_platform(platform, left_position)
-			if l.distance(left_position, nearest_left) < 2 && player.velocity.y >= 0 {
+			if l.distance(left_position, nearest_left) < 2 {
 				left_wall_hits += 1
 			}
 		}

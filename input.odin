@@ -7,7 +7,8 @@ import sa "core:container/small_array"
 
 Input_Buffer :: struct {
 	actions: [Input_Action]Buffered_Input,
-	lockout: f32
+	lockout: f32,
+	spin_lockout: f32
 }
 
 Buffered_Input :: union {f32}
@@ -23,6 +24,13 @@ update_buffer :: proc() {
 		input_buffer.lockout -= frametime
 		if input_buffer.lockout < 0 {
 			input_buffer.lockout = 0
+		}
+	}
+
+	if input_buffer.spin_lockout > 0 {
+		input_buffer.spin_lockout -= frametime
+		if input_buffer.spin_lockout < 0 {
+			input_buffer.spin_lockout = 0
 		}
 	}
 
@@ -53,7 +61,7 @@ consume_action :: proc(action: Input_Action) {
 
 is_action_buffered :: proc(action: Input_Action) -> bool {
 	_, action_pressed := input_buffer.actions[action].(f32)
-	return action_pressed
+	return action_pressed && input_buffer.spin_lockout == 0
 }
 
 input :: proc() {
@@ -86,7 +94,8 @@ player_spin :: proc() {
 	if is_action_buffered(.Spin) {
 		#partial switch player.state {
 			case .Submerged:
-				input_buffer.lockout = 0.5
+				input_buffer.spin_lockout = 0.2
+				player.velocity += 75 * l.normalize0(player.movement_delta)
 				consume_action(.Spin)
 			case .Slide:
 				jump_force:= Vec2 {0,-45}

@@ -59,10 +59,10 @@ make_player :: proc() -> Player {
 				deceleration = 0.01
 			},
 			.Submerged = Speed {
-				max = 50,
-				acceleration = 100,
-				base_acceleration = 100,
-				deceleration = 0.01
+				max = 75,
+				acceleration = 350,
+				base_acceleration = 350,
+				deceleration = 0.03
 			}
 		}
 	}
