@@ -36,30 +36,28 @@ platforms := [?]Platform {
 	make_platform({50,0}, 10, 100),
 	make_platform({-50,0}, 10, 100),
 }
-camera_control := CameraControl {target_offset = Vec2 {SCREEN_WIDTH/2,SCREEN_HEIGHT/2}}
-camera := rl.Camera2D {zoom = 1, offset = Vec2 {SCREEN_WIDTH/2,SCREEN_HEIGHT/2}}
-camera_3d := rl.Camera3D { position = {0,25,200}, up = {0,1,0}, projection = .PERSPECTIVE, fovy = 45, target ={0,25,0}}
 input_buffer: Input_Buffer
-entities: [dynamic]Entity
+water_tex: rl.Texture2D
+player := make_player()
 
 
 
 main :: proc() {
-	// Add player to the entites array
-	append(&entities, make_player())
 	rl.InitWindow(c.int(WINDOW_WIDTH), c.int(WINDOW_HEIGHT), "Moonflower")
 	defer rl.CloseWindow()
+	// Add player to the entites array
+	water_tex = rl.LoadTexture("textures/water.png")
 
 	offscreen = rl.LoadRenderTexture(c.int(SCREEN_WIDTH), c.int(SCREEN_HEIGHT))
 
 	for !rl.WindowShouldClose() {
 		alpha := update()
 		// render(alpha)
+		follow_player()
 		render_3d(alpha)
 		draw()
 		free_all(context.temp_allocator)
 	}
-	delete(entities)
 }
 
 

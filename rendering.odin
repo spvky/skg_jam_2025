@@ -12,6 +12,8 @@ draw_platforms :: proc() {
 				color = rl.WHITE
 			case .Spike:
 				color = rl.RED
+			case .Water:
+				color = {0,45,255,100}
 		}
 		rec := rl.Rectangle{x = platform.translation.x, y = platform.translation.y, width = platform.size.x, height = platform.size.y}
 		rl.DrawRectanglePro(rec, platform.size / 2, 0, color)
@@ -21,11 +23,14 @@ draw_platforms :: proc() {
 render_platforms :: proc() {
 	for platform in platforms {
 		color: rl.Color
-		switch platform.type {
+		// Light and water are rendered seperately because they are transparent
+		#partial switch platform.type {
 			case .Normal, .OneWay:
 				color = rl.WHITE
 			case .Spike:
 				color = rl.RED
+			case .Water:
+				color = {0,45,255,100}
 		}
 		position := [3]f32{platform.translation.x, platform.translation.y, 5}
 		size := [3]f32{platform.size.x, platform.size.y, 5}
@@ -34,47 +39,41 @@ render_platforms :: proc() {
 }
 
 draw_entities :: proc(alpha: f32) {
-	for entity in entities {
-		position := l.lerp(entity.snapshot, entity.translation, alpha)
-		color := rl.RED
-		if entity.tag == .Player {
-			#partial switch entity.state {
-			case .Slide:
-				color = rl.GREEN
-			case .Airborne:
-				color = rl.BLUE
-			case .Drill:
-				color = rl.PINK
-			case:
-				color = rl.WHITE
-			}
-			size := Vec2 {entity.radius * 2, entity.height}
-			rl.DrawCircleV(position + {0, entity.height / 2}, entity.radius, color)
-			rl.DrawCircleV(position - {0, entity.height / 2}, entity.radius, color)
+	position := l.lerp(player.snapshot, player.translation, alpha)
+	color := rl.RED
+		#partial switch player.state {
+		case .Slide:
+			color = rl.GREEN
+		case .Airborne:
+			color = rl.BLUE
+		case .Drill:
+			color = rl.PINK
+		case:
+			color = rl.WHITE
 		}
-	}
+	size := Vec2 {player.radius * 2, player.height}
+	rl.DrawCircleV(position + {0, player.height / 2}, player.radius, color)
+	rl.DrawCircleV(position - {0, player.height / 2}, player.radius, color)
 }
 
 render_entites :: proc (alpha: f32) {
-	for entity in entities {
-		raw_position := l.lerp(entity.snapshot, entity.translation, alpha)
-		position := Vec3{raw_position.x, raw_position.y, 0}
-		color := rl.RED
-		if entity.tag == .Player {
-			#partial switch entity.state {
-			case .Slide:
-				color = rl.GREEN
-			case .Airborne:
-				color = rl.BLUE
-			case .Drill:
-				color = rl.PINK
-			case:
-				color = rl.WHITE
-			}
-			size := Vec3 {entity.radius * 2, entity.height, 0}
-			rl.DrawSphere(position + {0, entity.height / 2,0}, entity.radius, color)
-			rl.DrawSphere(position - {0, entity.height / 2,0}, entity.radius, color)
+	raw_position := l.lerp(player.snapshot, player.translation, alpha)
+	position := Vec3{raw_position.x, raw_position.y, 0}
+	color := rl.RED
+	if player.tag == .Player {
+		#partial switch player.state {
+		case .Slide:
+			color = rl.GREEN
+		case .Airborne:
+			color = rl.BLUE
+		case .Drill:
+			color = rl.PINK
+		case:
+			color = rl.WHITE
 		}
+		size := Vec3 {player.radius * 2, player.height, 0}
+		rl.DrawSphere(position + {0, player.height / 2,0}, player.radius, color)
+		rl.DrawSphere(position - {0, player.height / 2,0}, player.radius, color)
 	}
 }
 
@@ -90,9 +89,6 @@ render_3d :: proc(alpha: f32) {
 	rl.BeginMode3D(camera_3d)
 	render_platforms()
 	render_entites(alpha)
-	// rl.DrawCube({0,0,0}, 5,5,5, rl.RED)
-	// draw_platforms()
-	// draw_entities(alpha)
 	rl.EndMode3D()
 	rl.EndTextureMode()
 }

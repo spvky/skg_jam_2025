@@ -19,57 +19,52 @@ Dynamic_Body :: struct {
 }
 
 physics_step :: proc() {
-	entity_platform_collision()
+	player_platform_collision()
 	player_jump()
 	apply_gravity()
-	manage_entity_x_velocity()
+	manage_player_x_velocity()
 	simulate_dynamics()
 }
 
 simulate_dynamics :: proc() {
-	for &entity in entities {
-		entity.snapshot = entity.translation
-		#partial switch entity.state {
+		player.snapshot = player.translation
+		#partial switch player.state {
 			case .Slide:
-				wall_slide_velocity := Vec2{entity.velocity.x, entity.velocity.y / 10}
-				entity.translation += entity.velocity * TICK_RATE
+				wall_slide_velocity := Vec2{player.velocity.x, player.velocity.y / 10}
+				player.translation += player.velocity * TICK_RATE
 			case:
-				entity.translation += entity.velocity * TICK_RATE
+				player.translation += player.velocity * TICK_RATE
 		}
-	}
 }
 
 apply_gravity :: proc() {
-	for &entity in entities {
-		switch entity.state {
+		switch player.state {
 			case .Airborne:
-				entity.velocity.y += 100 * TICK_RATE
+				player.velocity.y += 100 * TICK_RATE
 			case .Slide:
-				entity.velocity.y += 50 * TICK_RATE
+				player.velocity.y += 50 * TICK_RATE
 			case .Drill:
-				entity.velocity.y += 150 * TICK_RATE
+				player.velocity.y += 150 * TICK_RATE
 			case .Grounded:
-				entity.velocity.y = 0
+				player.velocity.y = 0
 		}
-	}
 }
 
-manage_entity_x_velocity :: proc() {
-	for &entity in entities {
-		current_state := entity.state
-		max, acceleration, deceleration := entity.speed[current_state].max, entity.speed[current_state].acceleration, entity.speed[current_state].deceleration
-		if entity.x_delta != 0 {
-			if entity.x_delta * entity.velocity.x < max {
-				entity.velocity.x += TICK_RATE * acceleration * entity.x_delta
+manage_player_x_velocity :: proc() {
+		current_state := player.state
+		max, acceleration, deceleration := player.speed[current_state].max, player.speed[current_state].acceleration, player.speed[current_state].deceleration
+		if player.x_delta != 0 {
+			if player.x_delta * player.velocity.x < max {
+				player.velocity.x += TICK_RATE * acceleration * player.x_delta
 			}
 		} else {
 			factor := 1 - deceleration
-			entity.velocity.x = entity.velocity.x * factor
-			if math.abs(entity.velocity.x) < 0.3 {
-				entity.velocity.x = 0
+			player.velocity.x = player.velocity.x * factor
+			if math.abs(player.velocity.x) < 0.3 {
+				player.velocity.x = 0
 			}
 		}
-		for &speed in entity.speed {
+		for &speed in player.speed {
 			if speed.acceleration < speed.base_acceleration {
 				speed.acceleration += speed.base_acceleration * TICK_RATE
 				if speed.acceleration > speed.base_acceleration {
@@ -77,14 +72,13 @@ manage_entity_x_velocity :: proc() {
 				}
 			}
 		}
-	}
 }
 
-entity_platform_collision :: proc() {
+player_platform_collision :: proc() {
 
-	calculate_collision :: proc(collisions: ^[dynamic]Collision_Data, nearest_entity: Vec2, nearest_collider: Vec2, radius: f32, type: Platform_Type) {
+	calculate_collision :: proc(collisions: ^[dynamic]Collision_Data, nearest_player: Vec2, nearest_collider: Vec2, radius: f32, type: Platform_Type) {
 		collision: Collision_Data
-		collision_vector := nearest_entity - nearest_collider
+		collision_vector := nearest_player - nearest_collider
 		pen_depth := radius - l.length(collision_vector)
 		collision_normal := l.normalize(collision_vector)
 		mtv := collision_normal * pen_depth
@@ -94,22 +88,21 @@ entity_platform_collision :: proc() {
 		append(collisions, collision)
 	}
 
-	for &entity in entities {
 		collisions := make([dynamic]Collision_Data, 0, 8, allocator = context.temp_allocator)
 
 		// Find collisions
 		for platform in platforms {
-			half_height := Vec2{0, entity.height/2}
-			nearest_platform := project_point_onto_platform(platform, entity.translation)
-			nearest_entity := l.clamp(nearest_platform, entity.translation - half_height, entity.translation + half_height)
+			half_height := Vec2{0, player.height/2}
+			nearest_platform := project_point_onto_platform(platform, player.translation)
+			nearest_player := l.clamp(nearest_platform, player.translation - half_height, player.translation + half_height)
 
-			if l.distance(nearest_entity, nearest_platform) < entity.radius  && platform.type != .OneWay {//!should_ignore{
+			if l.distance(nearest_player, nearest_platform) < player.radius  && platform.type != .OneWay {//!should_ignore{
 				if platform.type != .Water {
-					calculate_collision(&collisions, nearest_entity, nearest_platform, entity.radius, platform.type)
+					calculate_collision(&collisions, nearest_player, nearest_platform, player.radius, platform.type)
 				} else {
 					volume_top := platform.translation.y - (platform.size.y / 2)
-					// Calculate difference between entity y position and the top of the watre volume
-					diff := volume_top - entity.translation.y
+					// Calculate difference between player y position and the top of the watre volume
+					diff := volume_top - player.translation.y
 					submersion_depth := diff / platform.size.y
 				}
 			}
@@ -119,14 +112,14 @@ entity_platform_collision :: proc() {
 		for collision in collisions {
 			#partial switch collision.type {
 			case .Normal:
-				entity.translation += collision.mtv
+				player.translation += collision.mtv
 				x_dot := math.abs(l.dot(collision.normal, Vec2{1,0}))
 				y_dot := math.abs(l.dot(collision.normal, Vec2{0,1}))
 				if  x_dot > 0.7 {
-					entity.velocity.x = 0
+					player.velocity.x = 0
 				}
 				if y_dot > 0.7 {
-					entity.velocity.y = 0
+					player.velocity.y = 0
 				}
 			}
 		}
@@ -137,36 +130,36 @@ entity_platform_collision :: proc() {
 		left_wall_hits: int
 		for platform in platforms {
 			//Grounded
-			feet_position := entity.translation + Vec2{0, entity.height - 2.5}
+			feet_position := player.translation + Vec2{0, player.height - 2.5}
 			nearest_feet := project_point_onto_platform(platform, feet_position)
 			switch platform.type {
 				case .Normal, .OneWay:
-					if l.distance(feet_position, nearest_feet) < 3 && entity.velocity.y >= 0 {
+					if l.distance(feet_position, nearest_feet) < 3 && player.velocity.y >= 0 {
 						ground_hits += 1
 					}
 				case .Spike:
-					if l.distance(feet_position, nearest_feet) < 4 && entity.state == .Drill && entity.tag == .Player{
+					if l.distance(feet_position, nearest_feet) < 4 && player.state == .Drill && player.tag == .Player{
 						if rl.IsKeyDown(.J) {
-							entity.velocity.y = -80
+							player.velocity.y = -80
 						} else {
-							entity.velocity.y = -35
+							player.velocity.y = -35
 						}
 					}
 				case .Water:
 			}
 
-			if platform.type != .OneWay {
+			if platform.type == .Normal {
 				// Right Wall
-				right_position := entity.translation + Vec2{entity.radius, 0}
+				right_position := player.translation + Vec2{player.radius, 0}
 				nearest_right := project_point_onto_platform(platform, right_position)
-				if l.distance(right_position, nearest_right) < 2 && entity.velocity.y >= 0 {
+				if l.distance(right_position, nearest_right) < 2 && player.velocity.y >= 0 {
 					right_wall_hits += 1
 				}
 				
 				// Left wall
-				left_position := entity.translation - Vec2{entity.radius, 0}
+				left_position := player.translation - Vec2{player.radius, 0}
 				nearest_left := project_point_onto_platform(platform, left_position)
-				if l.distance(left_position, nearest_left) < 2 && entity.velocity.y >= 0 {
+				if l.distance(left_position, nearest_left) < 2 && player.velocity.y >= 0 {
 					left_wall_hits += 1
 				}
 			}
@@ -175,28 +168,27 @@ entity_platform_collision :: proc() {
 		sliding: bool
 
 		if right_wall_hits > 0 {
-			entity.sliding_wall = .Right
+			player.sliding_wall = .Right
 			sliding = true
 		}
 
 		if left_wall_hits > 0 {
-			entity.sliding_wall = .Left
+			player.sliding_wall = .Left
 			sliding = true
 		}
 
 		// Handle grounded state last because it overrides wall sliding
 		if ground_hits > 0 {
-			entity.state = .Grounded
+			player.state = .Grounded
 		} else {
 			if sliding {
-				entity.state = .Slide
+				player.state = .Slide
 			} else {
-				if entity.state != .Drill {
-					entity.state = .Airborne
+				if player.state != .Drill {
+					player.state = .Airborne
 				}
 			}
 		}
-	}
 }
 
 

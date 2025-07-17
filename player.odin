@@ -68,72 +68,60 @@ input :: proc() {
 }
 
 set_player_delta :: proc() {
-	for &entity in entities {
-		if entity.tag == .Player {
-			delta: f32
-			if rl.IsKeyDown(.A) && input_buffer.lockout == 0 {
-				delta -= 1
-			}
-			if rl.IsKeyDown(.D) && input_buffer.lockout == 0 {
-				delta += 1
-			}
-			entity.x_delta = delta
-		}
+	delta: f32
+	if rl.IsKeyDown(.A) && input_buffer.lockout == 0 {
+		delta -= 1
 	}
+	if rl.IsKeyDown(.D) && input_buffer.lockout == 0 {
+		delta += 1
+	}
+	player.x_delta = delta
 }
 
 print_player_velocity :: proc() {
-	for entity in entities {
-		if entity.tag == .Player {
-			velo_string := fmt.tprintf("Velocity: [%5.2f,%5.2f]", entity.velocity.x, entity.velocity.y)
-			rl.DrawText(strings.clone_to_cstring(velo_string),10, 10, 24, rl.WHITE)
-		}
-	}
+	velo_string := fmt.tprintf("Velocity: [%5.2f,%5.2f]", player.velocity.x, player.velocity.y)
+	rl.DrawText(strings.clone_to_cstring(velo_string),10, 10, 24, rl.WHITE)
 	camera_string := fmt.tprintf("Camera Y Offset: %5.2f", camera.offset.y)
 	rl.DrawText(strings.clone_to_cstring(camera_string),10, 34, 24, rl.WHITE)
 }
 
 player_jump :: proc() {
-	for &entity in entities {
-		if entity.tag == .Player {
-			if is_action_buffered(.Jump) {
-				#partial switch entity.state {
-					case .Grounded:
-						entity.velocity.y = -60
-						entity.state = .Airborne
-						consume_action(.Jump)
-					case .Slide:
-						jump_force:= Vec2 {0,-45}
-						switch entity.sliding_wall {
-							case .Right:
-								jump_force.x = -150
-							case .Left:
-								jump_force.x = 150
-						}
-						entity.velocity = jump_force
-						entity.state = .Airborne
-						input_buffer.lockout = 0.25
-						entity.speed[.Slide].acceleration = 0
-						consume_action(.Jump)
+	if is_action_buffered(.Jump) {
+		#partial switch player.state {
+			case .Grounded:
+				player.velocity.y = -60
+				player.state = .Airborne
+				consume_action(.Jump)
+			case .Slide:
+				jump_force:= Vec2 {0,-45}
+				switch player.sliding_wall {
+					case .Right:
+						jump_force.x = -150
+					case .Left:
+						jump_force.x = 150
 				}
-			}
+				player.velocity = jump_force
+				player.state = .Airborne
+				input_buffer.lockout = 0.25
+				player.speed[.Slide].acceleration = 0
+				consume_action(.Jump)
+		}
+	}
 
-			if is_action_buffered(.Drill) {
-				#partial switch entity.state {
-					case .Grounded:
-						entity.velocity.y = -70
-						entity.state = .Drill
-						consume_action(.Drill)
-					case .Airborne:
-						if entity.velocity.y < 100 {
-							entity.velocity.y = 100
-						} else {
-							entity.velocity.y += 100
-						}
-						entity.state = .Drill
-						consume_action(.Drill)
+	if is_action_buffered(.Drill) {
+		#partial switch player.state {
+			case .Grounded:
+				player.velocity.y = -70
+				player.state = .Drill
+				consume_action(.Drill)
+			case .Airborne:
+				if player.velocity.y < 100 {
+					player.velocity.y = 100
+				} else {
+					player.velocity.y += 100
 				}
-			}
+				player.state = .Drill
+				consume_action(.Drill)
 		}
 	}
 }
