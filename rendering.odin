@@ -4,26 +4,9 @@ import "core:c"
 import rl "vendor:raylib"
 import l "core:math/linalg"
 
-draw_platforms :: proc() {
-	for platform in platforms {
-		color: rl.Color
-		switch platform.type {
-			case .Normal, .OneWay:
-				color = rl.WHITE
-			case .Spike:
-				color = rl.RED
-			case .Water:
-				color = {0,45,255,100}
-		}
-		rec := rl.Rectangle{x = platform.translation.x, y = platform.translation.y, width = platform.size.x, height = platform.size.y}
-		rl.DrawRectanglePro(rec, platform.size / 2, 0, color)
-	}
-}
-
 render_platforms :: proc() {
 	for platform in platforms {
 		color: rl.Color
-		// Light and water are rendered seperately because they are transparent
 		#partial switch platform.type {
 			case .Normal, .OneWay:
 				color = rl.WHITE
@@ -44,24 +27,6 @@ render_platforms :: proc() {
 	}
 }
 
-draw_entities :: proc(alpha: f32) {
-	position := l.lerp(player.snapshot, player.translation, alpha)
-	color := rl.RED
-		#partial switch player.state {
-		case .Slide:
-			color = rl.GREEN
-		case .Airborne:
-			color = rl.BLUE
-		case .Drill:
-			color = rl.PINK
-		case:
-			color = rl.WHITE
-		}
-	size := Vec2 {player.radius * 2, player.height}
-	rl.DrawCircleV(position + {0, player.height / 2}, player.radius, color)
-	rl.DrawCircleV(position - {0, player.height / 2}, player.radius, color)
-}
-
 render_entites :: proc (alpha: f32) {
 	raw_position := l.lerp(player.snapshot, player.translation, alpha)
 	position := Vec3{raw_position.x, raw_position.y, 0}
@@ -77,9 +42,7 @@ render_entites :: proc (alpha: f32) {
 		case:
 			color = rl.WHITE
 		}
-		size := Vec3 {player.radius * 2, player.height, 0}
-		rl.DrawSphere(position + {0, player.height / 2,0}, player.radius, color)
-		rl.DrawSphere(position - {0, player.height / 2,0}, player.radius, color)
+		rl.DrawSphere(position, player.radius, color)
 	}
 }
 

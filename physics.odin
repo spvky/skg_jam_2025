@@ -45,8 +45,6 @@ apply_gravity :: proc() {
 				player.velocity.y += 50 * TICK_RATE
 			case .Drill:
 				player.velocity.y += 150 * TICK_RATE
-			case .Grounded:
-				player.velocity.y = 0
 			case .Submerged:
 		}
 }
@@ -94,13 +92,11 @@ player_platform_collision :: proc() {
 		in_water := false
 		// Find collisions
 		for platform in platforms {
-			half_height := Vec2{0, player.height/2}
 			nearest_platform := project_point_onto_platform(platform, player.translation)
-			nearest_player := l.clamp(nearest_platform, player.translation - half_height, player.translation + half_height)
 
-			if l.distance(nearest_player, nearest_platform) < player.radius  && platform.type != .OneWay {//!should_ignore{
+			if l.distance(player.translation, nearest_platform) < player.radius {
 				if platform.type != .Water {
-					calculate_collision(&collisions, nearest_player, nearest_platform, player.radius, platform.type)
+					calculate_collision(&collisions, player.translation, nearest_platform, player.radius, platform.type)
 				} else {
 					in_water = true
 					volume_top := platform.translation.y - (platform.size.y / 2)
