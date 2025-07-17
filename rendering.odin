@@ -27,23 +27,21 @@ render_platforms :: proc() {
 	}
 }
 
-render_entites :: proc (alpha: f32) {
+render_player :: proc (alpha: f32) {
 	raw_position := l.lerp(player.snapshot, player.translation, alpha)
 	position := Vec3{raw_position.x, raw_position.y, 0}
 	color := rl.RED
-	if player.tag == .Player {
-		#partial switch player.state {
-		case .Slide:
-			color = rl.GREEN
-		case .Airborne:
-			color = rl.BLUE
-		case .Drill:
-			color = rl.PINK
-		case:
-			color = rl.WHITE
-		}
-		rl.DrawSphere(position, player.radius, color)
+	#partial switch player.state {
+	case .Slide:
+		color = rl.GREEN
+	case .Airborne:
+		color = rl.BLUE
+	case .Drill:
+		color = rl.PINK
+	case:
+		color = rl.WHITE
 	}
+	rl.DrawSphere(position, player.radius, color)
 }
 
 update_camera_offset :: proc(alpha: f32) {
@@ -52,24 +50,13 @@ update_camera_offset :: proc(alpha: f32) {
 	camera.offset.y = l.lerp(camera.offset.y, camera_control.target_offset.y, frametime * 10)
 }
 
-render_3d :: proc(alpha: f32) {
+render :: proc(alpha: f32) {
 	rl.BeginTextureMode(offscreen)
 	rl.ClearBackground({12,37,31,255})
 	rl.BeginMode3D(camera_3d)
 	render_platforms()
-	render_entites(alpha)
+	render_player(alpha)
 	rl.EndMode3D()
-	rl.EndTextureMode()
-}
-
-render :: proc(alpha: f32) {
-	rl.BeginTextureMode(offscreen)
-	rl.BeginMode2D(camera)
-	rl.ClearBackground({12,37,31,255})
-	update_camera_offset(alpha)
-	draw_platforms()
-	draw_entities(alpha)
-	rl.EndMode2D()
 	rl.EndTextureMode()
 }
 

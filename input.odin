@@ -1,7 +1,6 @@
 package main
 
 import "core:fmt"
-import "core:strings"
 import l "core:math/linalg"
 import rl "vendor:raylib"
 import sa "core:container/small_array"
@@ -14,8 +13,7 @@ Input_Buffer :: struct {
 Buffered_Input :: union {f32}
 
 Input_Action :: enum {
-	Jump,
-	Drill
+	Spin,
 }
 
 update_buffer :: proc() {
@@ -62,36 +60,34 @@ input :: proc() {
 	frametime := rl.GetFrameTime()
 	update_buffer()
 	// Tracking raw input in the input buffer
-	if rl.IsKeyPressed(.SPACE) do buffer_action(.Jump)
-	if rl.IsKeyPressed(.J) do buffer_action(.Drill)
-	set_player_delta()
+	if rl.IsKeyPressed(.SPACE) do buffer_action(.Spin)
+	set_player_movement_delta()
 }
 
-set_player_delta :: proc() {
-	delta: f32
+set_player_movement_delta :: proc() {
+	delta: Vec2
 	if rl.IsKeyDown(.A) && input_buffer.lockout == 0 {
-		delta -= 1
+		delta.x -= 1
 	}
 	if rl.IsKeyDown(.D) && input_buffer.lockout == 0 {
-		delta += 1
+		delta.x += 1
 	}
-	player.x_delta = delta
+	if rl.IsKeyDown(.W) && input_buffer.lockout == 0 {
+		delta.y -= 1
+	}
+	if rl.IsKeyDown(.S) && input_buffer.lockout == 0 {
+		delta.y += 1
+	}
+	player.movement_delta = delta
 }
 
-print_player_velocity :: proc() {
-	velo_string := fmt.tprintf("Velocity: [%5.2f,%5.2f]", player.velocity.x, player.velocity.y)
-	rl.DrawText(strings.clone_to_cstring(velo_string),10, 10, 24, rl.WHITE)
-	camera_string := fmt.tprintf("Camera Y Offset: %5.2f", camera.offset.y)
-	rl.DrawText(strings.clone_to_cstring(camera_string),10, 34, 24, rl.WHITE)
-}
 
-player_jump :: proc() {
-	if is_action_buffered(.Jump) {
+player_spin :: proc() {
+	if is_action_buffered(.Spin) {
 		#partial switch player.state {
-			case .Grounded:
-				player.velocity.y = -60
-				player.state = .Airborne
-				consume_action(.Jump)
+			case .Submerged:
+				input_buffer.lockout = 0.5
+				consume_action(.Spin)
 			case .Slide:
 				jump_force:= Vec2 {0,-45}
 				switch player.sliding_wall {
@@ -104,16 +100,7 @@ player_jump :: proc() {
 				player.state = .Airborne
 				input_buffer.lockout = 0.25
 				player.speed[.Slide].acceleration = 0
-				consume_action(.Jump)
-		}
-	}
-
-	if is_action_buffered(.Drill) {
-		#partial switch player.state {
-			case .Grounded:
-				player.velocity.y = -70
-				player.state = .Drill
-				consume_action(.Drill)
+				consume_action(.Spin)
 			case .Airborne:
 				if player.velocity.y < 100 {
 					player.velocity.y = 100
@@ -121,7 +108,7 @@ player_jump :: proc() {
 					player.velocity.y += 100
 				}
 				player.state = .Drill
-				consume_action(.Drill)
+				consume_action(.Spin)
 		}
 	}
 }
