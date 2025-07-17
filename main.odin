@@ -8,11 +8,11 @@ import sa "core:container/small_array"
 Vec2 :: [2]f32
 Vec3 :: [3]f32
 
-WINDOW_WIDTH : f32 = 1600.0
-WINDOW_HEIGHT : f32 = 900.0
+WINDOW_WIDTH : f32 = 1920.0
+WINDOW_HEIGHT : f32 = 1080.0
 
-SCREEN_WIDTH :: 400
-SCREEN_HEIGHT :: 225
+SCREEN_WIDTH :: 600
+SCREEN_HEIGHT :: 337
 
 TICK_RATE :: 1.0/200.0
 
@@ -28,6 +28,7 @@ CameraControl :: struct {
 }
 
 // Global values
+fish_model: rl.Model
 offscreen: rl.RenderTexture2D
 time: Time
 platforms := [?]Platform {
@@ -47,6 +48,7 @@ main :: proc() {
 	defer rl.CloseWindow()
 	// Add player to the entites array
 	water_tex = rl.LoadTexture("textures/water.png")
+	fish_model = rl.LoadModel("models/fish.glb")
 
 	offscreen = rl.LoadRenderTexture(c.int(SCREEN_WIDTH), c.int(SCREEN_HEIGHT))
 

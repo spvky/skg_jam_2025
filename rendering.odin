@@ -1,6 +1,8 @@
 package main
 
 import "core:c"
+import "core:math"
+import "core:fmt"
 import rl "vendor:raylib"
 import l "core:math/linalg"
 
@@ -41,7 +43,9 @@ render_player :: proc (alpha: f32) {
 	case:
 		color = rl.WHITE
 	}
-	rl.DrawSphere(position, player.radius, color)
+	normalized_velo := l.normalize0(Vec2{player.velocity.x, player.velocity.y})
+	rotation := math.to_degrees(math.atan2_f32(normalized_velo.x, -normalized_velo.y))
+	rl.DrawModelEx(fish_model,position,{0,0,1}, rotation, 1, color)
 }
 
 update_camera_offset :: proc(alpha: f32) {
