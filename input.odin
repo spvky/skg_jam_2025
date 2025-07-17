@@ -94,7 +94,7 @@ player_spin :: proc() {
 	if is_action_buffered(.Spin) {
 		#partial switch player.state {
 			case .Submerged:
-				input_buffer.spin_lockout = 0.2
+				input_buffer.spin_lockout = 0.4
 				player.velocity += 75 * l.normalize0(player.movement_delta)
 				consume_action(.Spin)
 			case .Slide:
