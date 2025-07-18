@@ -34,8 +34,8 @@ time: Time
 platforms := [?]Platform {
 	make_platform({0,50}, 500, 500, .Water),
 	make_platform({0,100}, 500, 10),
-	make_platform({145,0}, 10, 1000),
-	make_platform({-145,0}, 10, 1000),
+	make_platform({152,0}, 10, 1000),
+	make_platform({-152,0}, 10, 1000),
 }
 input_buffer: Input_Buffer
 water_tex: rl.Texture2D

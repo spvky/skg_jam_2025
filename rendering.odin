@@ -11,20 +11,25 @@ render_platforms :: proc() {
 		color: rl.Color
 		#partial switch platform.type {
 			case .Normal, .OneWay:
-				color = rl.WHITE
-				position := [3]f32{platform.translation.x, platform.translation.y, 5}
-				size := [3]f32{platform.size.x, platform.size.y, 5}
-				rl.DrawCubeV(position, size, color)
+				// color = rl.WHITE
+				// position := [3]f32{platform.translation.x, platform.translation.y, 5}
+				// size := [3]f32{platform.size.x, platform.size.y, 5}
+				// rl.DrawCubeV(position, size, color)
 			case .Spike:
 				color = rl.RED
 				position := [3]f32{platform.translation.x, platform.translation.y, 5}
 				size := [3]f32{platform.size.x, platform.size.y, 5}
 				rl.DrawCubeV(position, size, color)
-			case .Water:
-				color = {0,45,255,100}
-				position := [3]f32{platform.translation.x, platform.translation.y, 5}
-				size := [3]f32{platform.size.x, platform.size.y, 5}
-				rl.DrawCubeWiresV(position, size, color)
+		}
+	}
+}
+
+render_water :: proc() {
+	for platform in platforms {
+		if platform.type == .Water {
+			position := [3]f32{platform.translation.x, platform.translation.y, 5}
+			size := [3]f32{platform.size.x, platform.size.y, 3}
+			rl.DrawCubeV(position, size, {0,12,128,100})
 		}
 	}
 }
@@ -58,6 +63,7 @@ render :: proc(alpha: f32) {
 	rl.BeginTextureMode(offscreen)
 	rl.ClearBackground({12,37,31,255})
 	rl.BeginMode3D(camera_3d)
+	render_water()
 	render_platforms()
 	render_player(alpha)
 	rl.EndMode3D()
