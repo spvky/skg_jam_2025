@@ -36,6 +36,11 @@ simulate_dynamics :: proc() {
 			case:
 				player.translation += player.velocity * TICK_RATE
 		}
+		normalized_velo := l.normalize0(Vec2{player.velocity.x, player.velocity.y})
+		if normalized_velo != {0,0} {
+			player.rotation = math.to_degrees(math.atan2_f32(normalized_velo.x, -normalized_velo.y))
+		}
+		player.displayed_rotation = l.lerp(player.displayed_rotation, player.rotation, 10 * TICK_RATE)
 }
 
 apply_gravity :: proc() {

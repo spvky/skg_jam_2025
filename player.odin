@@ -15,6 +15,8 @@ Player :: struct {
 	movement_delta: Vec2,
 	speed: [Player_State]Speed,
 	last_grounded_pos: Vec2,
+	rotation: f32,
+	displayed_rotation: f32
 }
 
 Speed :: struct {

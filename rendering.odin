@@ -37,20 +37,21 @@ render_water :: proc() {
 render_player :: proc (alpha: f32) {
 	raw_position := l.lerp(player.snapshot, player.translation, alpha)
 	position := Vec3{raw_position.x, raw_position.y, 0}
-	color := rl.RED
-	#partial switch player.state {
-	case .Slide:
-		color = rl.GREEN
-	case .Airborne:
-		color = rl.BLUE
-	case .Drill:
-		color = rl.PINK
-	case:
-		color = rl.WHITE
+	color := rl.WHITE
+		if ODIN_DEBUG {
+		#partial switch player.state {
+		case .Slide:
+			color = rl.GREEN
+		case .Airborne:
+			color = rl.BLUE
+		case .Drill:
+			color = rl.PINK
+		case:
+			color = rl.WHITE
+		}
 	}
 	normalized_velo := l.normalize0(Vec2{player.velocity.x, player.velocity.y})
-	rotation := math.to_degrees(math.atan2_f32(normalized_velo.x, -normalized_velo.y))
-	rl.DrawModelEx(fish_model,position,{0,0,1}, rotation, 1, color)
+	rl.DrawModelEx(fish_model,position,{0,0,1}, player.displayed_rotation, 1, color)
 }
 
 update_camera_offset :: proc(alpha: f32) {
@@ -77,6 +78,8 @@ draw :: proc() {
 	render_origin := Vec2{0,0}
 	rect := rl.Rectangle{0,0, WINDOW_WIDTH, WINDOW_HEIGHT}
 	rl.DrawTexturePro(offscreen.texture, render_source, rect, render_origin, 0, rl.WHITE)
-	print_player_velocity()
+	if ODIN_DEBUG {
+		print_player_velocity()
+	}
 	rl.EndDrawing()
 }
